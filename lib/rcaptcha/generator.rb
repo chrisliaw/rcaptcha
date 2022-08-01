@@ -17,6 +17,22 @@ module RCaptcha
       return data
     end
 
+    def self.generate_image(captcha_text, opts = {  })
+
+      width = opts[:width] || 180
+      height = opts[:height] || 80
+
+      image = create_image(width, height)
+      draw_text!(captcha_text, image, opts)
+      
+      image = apply_distortion!(image)
+
+      data = image.to_blob
+      image.destroy!
+
+      return data
+    end
+
     private
 
     def self.create_image(width, height)
@@ -28,15 +44,23 @@ module RCaptcha
       image
     end
 
-    def self.draw_text!(text, image)
+    def self.draw_text!(text, image, opts = {  })
       draw = Magick::Draw.new
 
-      draw.annotate(image, image.columns, image.rows, 0, 0, text) {
-        self.gravity = Magick::CenterGravity
-        self.pointsize = 22
-        self.fill = 'darkblue'
-        self.stroke = 'transparent'
-      }
+      #draw.annotate(image, image.columns, image.rows, 0, 0, text) {
+      #  self.gravity = Magick::CenterGravity
+      #  self.pointsize = opts[:text_size] || 22
+      #  self.fill = opts[:text_fill_color] || 'darkblue'
+      #  self.stroke = opts[:text_stroke] || 'transparent'
+      #}
+
+      draw.annotate(image, image.columns, image.rows, 0, 0, text) do |img| 
+        img.gravity = Magick::CenterGravity
+        img.pointsize = opts[:text_size] || 22
+        img.fill = opts[:text_fill_color] || 'darkblue'
+        img.stroke = opts[:text_stroke] || 'transparent'
+      end
+
 
       nil
     end
